@@ -1,0 +1,215 @@
+-- =============================================
+-- 🔥 ANTI KICK AFK (MOBILE - ĐÃ CẢI TIẾN)
+-- Menu thu bé + DI CHUYỂN được + NÚT ĐÓNG
+-- =============================================
+
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+local antiKickEnabled = true
+local antiConnection = nil
+
+-- ==================== TẠO GUI MỚI (THU BÉ + DRAG + CLOSE) ====================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AntiKickMobilePro"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 240, 0, 105)      -- ĐÃ THU BÉ RẤT NHỎ
+mainFrame.Position = UDim2.new(1, -250, 0, 10)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 14)
+corner.Parent = mainFrame
+
+-- ==================== TITLE BAR (DÙNG ĐỂ DRAG) ====================
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 35)
+titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 14)
+titleCorner.Parent = titleBar
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -80, 1, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "🛡️ ANTI KICK"
+titleLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Parent = titleBar
+
+-- Nút Minimize (thu bé / mở rộng)
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Size = UDim2.new(0, 35, 0, 35)
+minimizeButton.Position = UDim2.new(1, -70, 0, 0)
+minimizeButton.BackgroundTransparency = 1
+minimizeButton.Text = "▼"
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.TextScaled = true
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.Parent = titleBar
+
+-- Nút Đóng (xóa hoàn toàn menu)
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 35, 0, 35)
+closeButton.Position = UDim2.new(1, -35, 0, 0)
+closeButton.BackgroundTransparency = 1
+closeButton.Text = "✕"
+closeButton.TextColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+
+-- ==================== NỘI DUNG CHÍNH (Toggle + Status) ====================
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1, 0, 1, -35)
+contentFrame.Position = UDim2.new(0, 0, 0, 35)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0.9, 0, 0, 48)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 5)
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+toggleButton.Text = "ANTI KICK: BẬT"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = contentFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 12)
+btnCorner.Parent = toggleButton
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, 0, 0, 22)
+statusLabel.Position = UDim2.new(0, 0, 1, -27)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Đang hoạt động"
+statusLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
+statusLabel.TextScaled = true
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.Parent = contentFrame
+
+-- ==================== HÀM DRAG (DI CHUYỂN MENU) ====================
+local function makeDraggable(gui)
+	local dragging = false
+	local dragInput = nil
+	local dragStart = nil
+	local startPos = nil
+
+	local function update(input)
+		local delta = input.Position - dragStart
+		gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+
+	gui.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = gui.Position
+
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	gui.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			update(input)
+		end
+	end)
+end
+
+makeDraggable(titleBar)   -- Kéo thả bằng thanh title
+makeDraggable(mainFrame)  -- Hoặc kéo bất kỳ đâu cũng được
+
+-- ==================== HÀM MINIMIZE (THU BÉ) ====================
+local minimized = false
+local originalSize = mainFrame.Size
+
+minimizeButton.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	
+	if minimized then
+		mainFrame.Size = UDim2.new(0, 240, 0, 35)   -- Thu bé chỉ còn title bar
+		contentFrame.Visible = false
+		minimizeButton.Text = "▲"
+	else
+		mainFrame.Size = originalSize
+		contentFrame.Visible = true
+		minimizeButton.Text = "▼"
+	end
+end)
+
+-- ==================== NÚT ĐÓNG MENU ====================
+closeButton.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+	print("🗑️ Menu Anti Kick đã đóng")
+end)
+
+-- ==================== HÀM ANTI KICK ====================
+local function startAntiKick()
+	if antiConnection then return end
+	antiConnection = player.Idled:Connect(function()
+		if not antiKickEnabled then return end
+		VirtualUser:CaptureController()
+		VirtualUser:ClickButton2(Vector2.new(0, 0))
+	end)
+end
+
+local function stopAntiKick()
+	if antiConnection then
+		antiConnection:Disconnect()
+		antiConnection = nil
+	end
+end
+
+-- ==================== NÚT TOGGLE ====================
+toggleButton.MouseButton1Click:Connect(function()
+	antiKickEnabled = not antiKickEnabled
+	
+	if antiKickEnabled then
+		toggleButton.Text = "ANTI KICK: BẬT"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+		statusLabel.Text = "Đang hoạt động"
+		statusLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
+		startAntiKick()
+	else
+		toggleButton.Text = "ANTI KICK: TẮT"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		statusLabel.Text = "Đã tắt"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+		stopAntiKick()
+	end
+end)
+
+-- ==================== KHỞI ĐỘNG ====================
+startAntiKick()
+
+print("✅ Anti Kick AFK (Mobile Pro) đã load!")
+print("• Kéo thanh title để di chuyển")
+print("• Nhấn ▼ để thu bé / ▲ để mở rộng")
+print("• Nhấn ✕ để đóng menu hoàn toàn")
